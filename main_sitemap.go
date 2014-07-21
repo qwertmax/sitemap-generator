@@ -11,12 +11,12 @@ import (
 )
 
 const (
-    DB_HOST = "tcp(127.0.0.1:8889)"
-    // DB_HOST = "tcp(127.0.0.1:3306)"
+    // DB_HOST = "tcp(127.0.0.1:8889)"
+    DB_HOST = "tcp(127.0.0.1:3306)"
     DB_NAME = "dmv"
     DB_USER = "root"
-    // DB_PASS = ""
-    DB_PASS = "1"
+    DB_PASS = ""
+    // DB_PASS = "1"
 
     stdLongYear  = "2006"
     stdZeroMonth = "01"
@@ -24,67 +24,56 @@ const (
 
     priority = 0.5
     itemsize = 50000
+    // itemsize = 5
 )
 
 func main() {
     p := fmt.Println
     dsn := DB_USER + ":" + DB_PASS + "@" + DB_HOST + "/" + DB_NAME + "?charset=utf8"
     db, err := sql.Open("mysql", dsn)
+    checkErr(err)
 
     types := []string{"article", "blog", "cdl_physical", "dmv_office", "directory_entry", "driving_school", "news", "page", "page_state"}
     p(types)
 
     for typeID := range types {
-        p(types[typeID])
-    }
+        // p(types[typeID])
+        sql := "SELECT n.nid, n.title, n.changed, a.dst path, n.type node_type FROM node n, url_alias a WHERE CONCAT('node/', n.nid) = a.src AND n.type = '"+ types[typeID] +"'"
 
-    os.Exit(0)
+        rows, err := db.Query(sql)
+        xml := ""
+        domain := "www.dmv.com"
+        var url, path, title, node_type string
+        var nid, changed int
+        i := 0
 
-    sql := "SELECT n.nid, n.title, n.changed, a.dst path, n.type node_type FROM node n, url_alias a WHERE CONCAT('node/', n.nid) = a.src AND n.type IN ("+
-        "'article',"+
-        "'blog',"+
-        "'news',"+
-        "'page',"+
-        "'page_state',"+
-        "'directory_entry',"+
-        "'cdl_physical',"+
-        "'dmv_office',"+
-        "'driving_school'"+
-    ")"
+        checkErr(err)
+        for rows.Next() {
+            err = rows.Scan(&nid, &title, &changed, &path, &node_type)
+            url = "http://" + domain +"/"+ path
+            xml += "<url>"+
+                "<loc>"+ url + "</loc>"+
+                "<lastmod>"+ TimeFormat(changed) +"</lastmod>"+
+                "<changefreq>"+ getChangefreq(node_type) +"</changefreq>"+
+                "<priority>"+ Ftoa(priority) +"</priority>"+
+            "</url>"
 
-    rows, err := db.Query(sql)
-    xml := ""
-    domain := "www.dmv.com"
-    var url, path, title, node_type string
-    var nid, changed int
-    i := 0
+            i++
 
-    checkErr(err)
-    for rows.Next() {
-        err = rows.Scan(&nid, &title, &changed, &path, &node_type)
-        url = "http://" + domain +"/"+ path
-        xml += "<url>"+
-            "<loc>"+ url + "</loc>"+
-            "<lastmod>"+ TimeFormat(changed) +"</lastmod>"+
-            "<changefreq>"+ getChangefreq(node_type) +"</changefreq>"+
-            "<priority>"+ Ftoa(priority) +"</priority>"+
-        "</url>"
-
-        i++
-
-        if(i % itemsize == 0){
-            saveFileStemap(xmlName(i, itemsize), xmlWrap(xml))
-            xml = "";
-            p(i)
+            if(i % itemsize == 0){
+                saveFileStemap(xmlName(i, itemsize, types[typeID]), xmlWrap(xml))
+                xml = "";
+                p(i)
+            }
         }
+        saveFileStemap("main-"+types[typeID]+".xml", xmlWrap(xml))
     }
-    db.Close()
 
-    saveFileStemap("main-last.xml", xmlWrap(xml))
+    db.Close()
 }
 
-func xmlName(i, itemsize int) string {
-    return "main-"+ strconv.Itoa(i-itemsize) +"-"+ strconv.Itoa(i) +".xml"
+func xmlName(i, itemsize int, t string) string {
+    return "main-"+ strconv.Itoa(i-itemsize) +"-"+ strconv.Itoa(i) +"-"+ t +".xml"
 }
 
 func xmlWrap(xml string) string{
