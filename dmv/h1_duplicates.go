@@ -9,7 +9,8 @@ import (
 )
 
 const DEV = true
-const CONSOLE = false
+const CONSOLE = true
+const STATES_INCLUDED = true
 
 const (
     DB_HOST_DEV = "tcp(127.0.0.1:8889)"
@@ -60,7 +61,9 @@ func getTitles(db *sql.DB) map[string]int {
         var title string
         row.Scan(&title)
 
-        title = removeState(title, states)
+        if(!STATES_INCLUDED){
+            title = removeState(title, states)
+        }
 
         if (titles[title] == 0) {
             titles[title] = 1
