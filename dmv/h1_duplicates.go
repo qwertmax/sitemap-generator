@@ -35,7 +35,7 @@ func main() {
             if(CONSOLE){
                 p("Key:", key, "Val: ", val)
             }else{
-                output += s("%s:%d\n", key, val)
+                output += s("%s;%d\n", key, val)
             }
             
         }
