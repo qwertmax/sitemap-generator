@@ -50,8 +50,8 @@ func main() {
 func getTitles(db *sql.DB) map[string]int {
     // sql := "SELECT title FROM node WHERE type IN ('article', 'page') AND title LIKE 'Commercial Driver\\'s Manual in%%'"
     // sql := "SELECT title FROM node WHERE type IN ('article', 'page') ORDER BY nid LIMIT 0,10"
-    sql := "SELECT title FROM node WHERE type IN ('article', 'page') ORDER BY nid"
-    // sql := "SELECT title FROM node"
+    // sql := "SELECT title FROM node WHERE type IN ('article', 'page') ORDER BY nid"
+    sql := "SELECT title FROM node"
     row, _ := db.Query(sql)
     titles := make(map[string]int)
 
