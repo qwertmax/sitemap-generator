@@ -5,8 +5,11 @@ import (
     "database/sql"
     "fmt"
     "strings"
-   _ "reflect"
+    "os"
 )
+
+const DEV = true
+const CONSOLE = false
 
 const (
     DB_HOST_DEV = "tcp(127.0.0.1:8889)"
@@ -16,27 +19,30 @@ const (
     DB_PASS = ""
     DB_PASS_DEV = "1"
 )
-const DEV = true
+
 var p = fmt.Println
+var s = fmt.Sprintf
 
 func main() {
     db := getDB()
 
-    // states := getStateList(db)
-    // p(states)
-
     titles := getTitles(db)
+    var output string
 
     for key, val := range titles {
-        // p("Key:", key, "Val: ", val)
         if ( val > 1) {
-            p("Key:", key, "Val: ", val)
+            if(CONSOLE){
+                p("Key:", key, "Val: ", val)
+            }else{
+                output += s("%s:%d\n", key, val)
+            }
+            
         }
     }
 
-    // title := "New York qqq California aaaa Texas Washington DC"
-    // title = removeState(title, states)
-    // p(titles)
+    if(!CONSOLE){
+        saveFile("h1_duplicates.csv", output)
+    }
 
 }
 
@@ -108,4 +114,11 @@ func checkErr(err error) {
     if err != nil {
         panic(err)
     }
+}
+
+func saveFile(fname, fileContent string){
+    f, err := os.Create(fname)
+    checkErr(err)
+    byteArray := []byte(fileContent)
+    f.Write(byteArray)
 }
