@@ -27,7 +27,7 @@ func fanIn(set []<-chan string) <-chan string {
 }
 
 func main() {
-	set := []<-chan string{mylib.Boring("Joe"), mylib.Boring("Ann"), mylib.Boring("Max")}
+	set := []<-chan string{mylib.Boring("Joe"), mylib.Boring("Ann"), mylib.Boring("Max"), mylib.Boring("Nati"), mylib.Boring("Evgen")}
 	c := fanIn(set)
 	for i := 0; i < 30; i++ {
 		fmt.Println(<-c)
